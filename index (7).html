@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LeakMate – Application Demo</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background: #daebf8;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER */
+.header {
+  background: #1B3A4B;
+  padding: 16px 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.brand-logo {
+  width: 36px; height: 36px;
+  background: #26e1c8;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.header-left { display: flex; align-items: center; gap: 12px; }
+.brand-name { font-size: 20px; font-weight: 700; color: #fff; }
+.brand-name span { color: #26e1c8; }
+.header-title { font-size: 26px; font-weight: 700; color: #fff; }
+.header-sub { font-size: 12px; color: #26e1c8; font-style: italic; margin-top: 2px; }
+
+/* MAIN LAYOUT */
+.layout {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 24px 48px;
+  gap: 36px;
+}
+
+/* TOUR PANEL */
+.tour-panel {
+  width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+  position: relative;
+}
+.step::before {
+  content: '';
+  position: absolute;
+  left: 26px; top: 50px; bottom: -12px;
+  width: 2px;
+  background: rgba(38,225,200,0.25);
+}
+.step:last-child::before { display: none; }
+.step.active { background: #fff; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+.step-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(38,225,200,0.15);
+  color: #6b8fa8;
+  font-size: 12px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.step.active .step-num { background: #26e1c8; color: #fff; }
+.step-label { font-size: 13px; font-weight: 600; color: #6b8fa8; }
+.step.active .step-label { color: #1B3A4B; }
+.step-desc { font-size: 11px; color: #6b8fa8; margin-top: 3px; line-height: 1.5; display: none; }
+.step.active .step-desc { display: block; }
+.step-tag {
+  display: none;
+  font-size: 10px; font-weight: 600;
+  padding: 2px 8px; border-radius: 20px;
+  background: #e8fdfb; color: #12b09c;
+  margin-top: 4px;
+}
+.step.active .step-tag { display: inline-block; }
+
+/* PHONE */
+.phone-wrap { flex: 1; display: flex; align-items: center; justify-content: center; }
+.phone {
+  width: 300px;
+  background: #0f1923;
+  border-radius: 44px;
+  padding: 10px;
+  box-shadow: 0 0 0 1px #2a3a4a, 0 30px 80px rgba(0,0,0,0.4);
+  flex-shrink: 0;
+  position: relative;
+}
+.phone::before {
+  content: '';
+  position: absolute;
+  top: 18px; left: 50%;
+  transform: translateX(-50%);
+  width: 100px; height: 28px;
+  background: #0f1923;
+  border-radius: 0 0 20px 20px;
+  z-index: 10;
+}
+.phone-screen {
+  background: #fff;
+  border-radius: 36px;
+  overflow: hidden;
+  height: 560px;
+  position: relative;
+}
+.phone-inner {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding-top: 36px;
+  scrollbar-width: none;
+}
+.phone-inner::-webkit-scrollbar { display: none; }
+
+/* STATUS BAR */
+.statusbar {
+  position: sticky; top: 0; z-index: 5;
+  background: #fff;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 16px 4px;
+  font-size: 10px; font-weight: 600; color: #1a2e3b;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* APP TOPBAR */
+.app-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px 6px;
+}
+.app-brand { display: flex; align-items: center; gap: 7px; }
+.app-logo {
+  width: 28px; height: 28px;
+  background: #26e1c8; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 14px;
+}
+.app-name { font-size: 15px; font-weight: 700; color: #1a2e3b; }
+.app-name span { color: #26e1c8; }
+.app-loc { font-size: 9px; color: #6b8fa8; margin-top: 1px; }
+.app-pill {
+  font-size: 9px; font-weight: 600;
+  padding: 3px 9px; border-radius: 20px;
+  background: #e8fdfb; color: #12b09c;
+  border: 1px solid #a0ede5;
+  display: flex; align-items: center; gap: 4px;
+}
+.pulse {
+  width: 5px; height: 5px;
+  border-radius: 50%; background: #26e1c8;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* APP NAV */
+.app-nav {
+  display: flex; gap: 2px;
+  padding: 4px 10px;
+  overflow-x: auto; scrollbar-width: none;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+.app-nav::-webkit-scrollbar { display: none; }
+.anb {
+  display: flex; align-items: center; gap: 4px;
+  padding: 6px 10px; border-radius: 10px;
+  font-size: 10px; font-weight: 500;
+  color: #3a5568; background: none; border: none;
+  cursor: pointer; white-space: nowrap;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.anb.active { background: #26e1c8; color: #fff; }
+
+/* PANELS */
+.panel { display: none; padding: 12px 14px; }
+.panel.active { display: block; }
+
+/* ALERT */
+.alert {
+  display: flex; align-items: flex-start; gap: 9px;
+  padding: 10px 12px; border-radius: 10px;
+  margin-bottom: 9px; border: 1px solid;
+}
+.aw { background: #faeeda; border-color: #FAC775; color: #854F0B; }
+.aok { background: #e8fdfb; border-color: #a0ede5; color: #12b09c; }
+.ar { background: #FCEBEB; border-color: #F09595; color: #A32D2D; }
+.alert-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.at2 { font-size: 11px; font-weight: 600; line-height: 1.4; }
+.ad { font-size: 9.5px; opacity: 0.9; margin-top: 2px; line-height: 1.5; }
+
+/* METRICS GRID */
+.mg { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 10px; }
+.mc {
+  background: #f0f8ff; border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 10px; padding: 10px 12px;
+}
+.ml { font-size: 8px; color: #6b8fa8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+.mv { font-size: 18px; font-weight: 700; color: #1a2e3b; line-height: 1; }
+.mu { font-size: 10px; font-weight: 400; color: #6b8fa8; }
+.mtr { font-size: 9px; margin-top: 3px; }
+.up { color: #E24B4A; }
+.dn { color: #12b09c; }
+.neu { color: #6b8fa8; }
+
+/* CARD */
+.card {
+  background: #fff; border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 12px; padding: 12px 14px;
+  margin-bottom: 9px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.chd {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 600; color: #1a2e3b;
+  margin-bottom: 10px;
+}
+.chd-icon { color: #26e1c8; font-size: 13px; }
+
+/* TIMELINE */
+.tl { display: flex; flex-direction: column; gap: 7px; }
+.tr2 { display: flex; align-items: flex-start; gap: 7px; font-size: 10px; }
+.td2 { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 2px; }
+.dg { background: #26e1c8; }
+.da { background: #EF9F27; }
+.dr { background: #E24B4A; }
+.tt { color: #6b8fa8; min-width: 70px; font-size: 9px; font-family: monospace; }
+.tm { color: #1a2e3b; line-height: 1.4; }
+
+/* CHART */
+.chart-wrap { width: 100%; margin-bottom: 4px; }
+.chart-svg { width: 100%; display: block; }
+.xaxis { display: flex; justify-content: space-between; margin-top: 2px; }
+.xaxis span { font-size: 8px; color: #6b8fa8; font-family: monospace; }
+
+/* VALVE */
+.gv-circle {
+  width: 48px; height: 48px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; border: 2px solid;
+}
+.gvo { background: #e8fdfb; border-color: #26e1c8; color: #12b09c; }
+.gvc { background: #FCEBEB; border-color: #E24B4A; color: #A32D2D; }
+.vstatus {
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: 9px; font-weight: 600;
+  padding: 2px 7px; border-radius: 20px;
+}
+.vs-o { background: #e8fdfb; color: #12b09c; }
+.vs-c { background: #FCEBEB; color: #A32D2D; }
+
+/* TOGGLE */
+.trow {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.07); gap: 10px;
+}
+.trow:last-child { border-bottom: none; }
+.tlabel { font-size: 11px; font-weight: 500; color: #1a2e3b; }
+.tdesc { font-size: 9px; color: #6b8fa8; margin-top: 1px; }
+.tgl { position: relative; width: 32px; height: 18px; flex-shrink: 0; }
+.tgl input { opacity: 0; width: 0; height: 0; }
+.tsl {
+  position: absolute; inset: 0;
+  background: #c8dde9; border-radius: 20px;
+  cursor: pointer; transition: 0.2s;
+}
+.tsl::before {
+  content: '';
+  position: absolute; width: 12px; height: 12px;
+  left: 3px; bottom: 3px;
+  background: #fff; border-radius: 50%;
+  transition: 0.2s;
+}
+.tgl input:checked + .tsl { background: #26e1c8; }
+.tgl input:checked + .tsl::before { transform: translateX(14px); }
+
+/* INFO BOX */
+.info-box {
+  font-size: 10px; color: #3a5568; line-height: 1.6;
+  background: #f0f8ff; border-radius: 8px;
+  padding: 9px 11px; border: 1px solid rgba(0,0,0,0.07);
+}
+.devrow {
+  display: flex; justify-content: space-between;
+  padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.07);
+  font-size: 10px;
+}
+.devrow:last-child { border-bottom: none; }
+.dk { color: #6b8fa8; }
+.dv { font-weight: 500; font-family: monospace; font-size: 9px; color: #1a2e3b; }
+
+/* FAILSAFE */
+.failsafe {
+  display: flex; align-items: flex-start; gap: 8px;
+  padding: 9px 11px;
+  background: #e8fdfb; border-radius: 9px;
+  border-left: 2px solid #26e1c8;
+  margin-top: 6px;
+}
+.failsafe p { font-size: 9.5px; color: #12b09c; line-height: 1.5; }
+
+/* UNIT GRID */
+.ugrid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.ucard {
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 10px; padding: 10px;
+  background: #f0f8ff;
+}
+.uname { font-size: 10px; font-weight: 600; color: #1a2e3b; }
+.utenant { font-size: 9px; color: #6b8fa8; margin-top: 1px; }
+
+/* INTEGRATIONS GRID */
+.int-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.int-card {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid rgba(0,0,0,0.07);
+  border-radius: 9px; background: #f0f8ff;
+}
+.int-name { font-size: 10px; font-weight: 600; }
+.int-status { font-size: 8.5px; }
+.int-ok { color: #12b09c; }
+.int-soon { color: #6b8fa8; }
+
+/* USP PANEL */
+.usp-panel {
+  width: 210px; flex-shrink: 0;
+  display: flex; flex-direction: column;
+  justify-content: center; gap: 10px;
+}
+.usp-card {
+  background: #fff; border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  display: flex; align-items: flex-start; gap: 10px;
+  opacity: 0.35; transform: translateX(6px);
+  transition: opacity 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+.usp-card.active { opacity: 1; transform: translateX(0); box-shadow: 0 4px 20px rgba(38,225,200,0.15); }
+.usp-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: #e8fdfb; color: #26e1c8;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.usp-icon.navy { background: #e8eef2; color: #1B3A4B; }
+.usp-title { font-size: 12px; font-weight: 600; color: #1B3A4B; line-height: 1.3; }
+.usp-body { font-size: 11px; color: #6b8fa8; margin-top: 3px; line-height: 1.5; }
+
+/* CONTROLS */
+.controls {
+  display: flex; align-items: center; justify-content: center; gap: 20px;
+  padding: 0 48px 20px; flex-shrink: 0;
+}
+.ctrl-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 22px; border-radius: 10px;
+  font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; font-family: inherit;
+  transition: all 0.15s;
+}
+.ctrl-prev { background: #fff; color: #1B3A4B; box-shadow: 0 1px 6px rgba(0,0,0,0.08); }
+.ctrl-prev:hover { background: #f5f9fc; }
+.ctrl-next { background: #1B3A4B; color: #fff; box-shadow: 0 2px 12px rgba(27,58,75,0.25); }
+.ctrl-next:hover { background: #243f52; }
+.ctrl-dots { display: flex; gap: 7px; align-items: center; }
+.ctrl-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: rgba(27,58,75,0.18); cursor: pointer;
+  transition: all 0.15s;
+}
+.ctrl-dot.active { background: #1B3A4B; width: 20px; border-radius: 4px; }
+
+/* MOBILE */
+.mobile-steps { display: none; }
+
+@media (max-width: 768px) {
+  .tour-panel { display: none; }
+  .usp-panel { display: none; }
+  .layout { padding: 12px 16px; }
+  .header { padding: 12px 16px; }
+  .header-title { font-size: 18px; }
+  .phone { width: min(300px, 88vw); }
+  .phone-screen { height: min(540px, 62vh); }
+  .controls { padding: 10px 16px 16px; }
+  .mobile-steps {
+    display: flex;
+    gap: 6px; padding: 8px 16px 0;
+    overflow-x: auto; scrollbar-width: none;
+  }
+  .mobile-steps::-webkit-scrollbar { display: none; }
+  .mob-btn {
+    flex-shrink: 0; padding: 6px 12px;
+    border-radius: 20px; font-size: 11px; font-weight: 600;
+    border: none; cursor: pointer; font-family: inherit;
+    background: rgba(27,58,75,0.1); color: #3a5568;
+    white-space: nowrap; transition: all 0.15s;
+  }
+  .mob-btn.active { background: #1B3A4B; color: #fff; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="brand-logo">💧</div>
+    <div>
+      <div class="brand-name">Leak<span>Mate</span></div>
+    </div>
+  </div>
+  <div>
+    <div class="header-title">Application</div>
+    <div class="header-sub">MVP-Tour durch die Hausverwaltungs-App</div>
+  </div>
+</div>
+
+<div class="mobile-steps" id="mobileSteps"></div>
+
+<div class="layout">
+  <div class="tour-panel" id="tourPanel"></div>
+
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen">
+        <div class="phone-inner" id="phoneInner">
+
+          <div class="statusbar">
+            <span style="font-family:monospace">09:41</span>
+            <span>📶 🔋</span>
+          </div>
+
+          <div class="app-topbar">
+            <div class="app-brand">
+              <div class="app-logo">💧</div>
+              <div>
+                <div class="app-name">Leak<span>Mate</span></div>
+                <div class="app-loc">🏢 Musterstraße 12 · HV</div>
+              </div>
+            </div>
+            <div class="app-pill"><div class="pulse"></div>Online</div>
+          </div>
+
+          <div class="app-nav" id="appNav">
+            <button class="anb active" data-panel="overview">📊 Übersicht</button>
+            <button class="anb" data-panel="leaks">🔍 Lecks</button>
+            <button class="anb" data-panel="consumption">📈 Verbrauch</button>
+            <button class="anb" data-panel="valve">🔧 Ventile</button>
+            <button class="anb" data-panel="settings">⚙️ Einstellungen</button>
+          </div>
+
+          <!-- OVERVIEW -->
+          <div class="panel active" id="p-overview">
+            <div class="alert aw">
+              <div class="alert-icon">⚠️</div>
+              <div>
+                <div class="at2">Ungewöhnlicher Verbrauch – EG Müller</div>
+                <div class="ad">02:14–03:02 Uhr · 8,3 Liter ohne Aktivität</div>
+              </div>
+            </div>
+            <div class="mg">
+              <div class="mc"><div class="ml">Gesamt heute</div><div class="mv">312 <span class="mu">L</span></div><div class="mtr up">↑ +8%</div></div>
+              <div class="mc"><div class="ml">Einheiten</div><div class="mv">4 <span class="mu">WE</span></div><div class="mtr dn">✓ alle online</div></div>
+              <div class="mc"><div class="ml">Hauptdruck</div><div class="mv">3.4 <span class="mu">bar</span></div><div class="mtr neu">Normal</div></div>
+              <div class="mc"><div class="ml">Alarme</div><div class="mv" style="color:#EF9F27">1 <span class="mu">aktiv</span></div><div class="mtr up">Seit 02:14</div></div>
+            </div>
+            <div class="card">
+              <div class="chd"><span class="chd-icon">📈</span>Verbrauch – letzte 24 Stunden</div>
+              <div class="chart-wrap">
+                <svg id="ov-svg" class="chart-svg" viewBox="0 0 400 80" height="80"></svg>
+              </div>
+              <div class="xaxis"><span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>23h</span></div>
+            </div>
+            <div class="card">
+              <div class="chd"><span class="chd-icon">🏢</span>Einheiten-Status</div>
+              <div class="tl">
+                <div class="tr2"><div class="td2 da"></div><span class="tt">EG · Müller</span><span class="tm">Anomalie 02:14 · 8.3 L ungeklärt</span></div>
+                <div class="tr2"><div class="td2 dg"></div><span class="tt">1. OG · Weber</span><span class="tm">Alles normal · 91 L</span></div>
+                <div class="tr2"><div class="td2 dg"></div><span class="tt">2. OG · Schmidt</span><span class="tm">Alles normal · 68 L</span></div>
+                <div class="tr2"><div class="td2 dg"></div><span class="tt">DG · Leerstand</span><span class="tm">Überwacht · 0 L · Ventil gesperrt</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LEAKS -->
+          <div class="panel" id="p-leaks">
+            <div class="alert aw">
+              <div class="alert-icon">⚠️</div>
+              <div>
+                <div class="at2">Verdächtiges Ereignis – EG Müller</div>
+                <div class="ad">8,3 L zwischen 02:14–03:02 ohne Nutzung · möglicher Tropfverlust</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="chd"><span class="chd-icon">🔗</span>Mesh-Netzwerk</div>
+              <svg id="mesh-mini" viewBox="0 0 340 170" width="100%" style="display:block"></svg>
+            </div>
+            <div class="card">
+              <div class="chd"><span class="chd-icon">📋</span>Ereignis-Protokoll</div>
+              <div class="tl">
+                <div class="tr2"><div class="td2 da"></div><span class="tt">Heute</span><span class="tm">Schleichverlust 8.3 L EG – unter Beobachtung</span></div>
+                <div class="tr2"><div class="td2 da"></div><span class="tt">Fr.</span><span class="tm">Druckabfall –0.3 bar (10 Min.)</span></div>
+                <div class="tr2"><div class="td2 dr"></div><span class="tt">vor 3 Wo.</span><span class="tm">Leckage EG · Ventil geschlossen · Handwerker</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="chd"><span class="chd-icon">🔧</span>Handwerkerbenachrichtigung</div>
+              <div class="info-box">Im Schadensfall: automatisch SMS + E-Mail an <strong>Sanitär Müller GmbH</strong> mit Druckverlauf und Leckagezone.</div>
+            </div>
+          </div>
+
+          <!-- CONSUMPTION -->
+          <div class="panel" id="p-consumption">
+            <div class="mg">
+              <div class="mc"><div class="ml">Gesamt heute</div><div class="mv">312 <span class="mu">L</span></div></div>
+              <div class="mc"><div class="ml">Monat</div><div class="mv">7.4 <span class="mu">m³</span></div></div>
+              <div class="mc"><div class="ml">Kosten est.</div><div class="mv">22.20 <span class="mu">€</span></div></div>
+              <div class="mc"><div class="ml">Ø/WE/Tag</div><div class="mv">78 <span class="mu">L</span></div></div>
+            </div>
+            <div class="card">
+              <div class="chd"><span class="chd-icon">📈</span>24h – alle Einheiten</div>
+              <div class="chart-wrap">
+                <svg id="cons-svg" class="chart-svg" viewBox="0 0 400 90" height="90"></svg>
+              </div>
+              <div class="xaxis"><span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>23h</span></div>
+            </div>
+            <div class="card">
+              <div class="chd"><span class="chd-icon">💡</span>Kostentransparenz</div>
+              <div class="info-box">EG Müller liegt <strong>+22%</strong> über Hausdurchschnitt. Automatische Nebenkostenabrechnung als PDF · München: 3,00 €/m³.</div>
+            </div>
+          </div>
+
+          <!-- VALVE -->
+          <div class="panel" id="p-valve">
+            <div class="card">
+              <div class="chd"><span class="chd-icon">🔧</span>Hauptventil – Gebäude</div>
+              <div style="display:flex;align-items:center;gap:14px;padding:4px 0 10px">
+                <div class="gv-circle gvo">🔓</div>
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:#12b09c">Offen</div>
+                  <div style="font-size:10px;color:#6b8fa8">Automatik aktiv · Keller EG</div>
+                </div>
+              </div>
+              <div class="failsafe">
+                <p><strong>Fail-Safe:</strong> Bei Stromausfall verbleibt das Ventil in der letzten Position. Lokale Abschaltung ohne Cloud-Zugang.</p>
+              </div>
+            </div>
+            <div class="card">
+              <div class="chd"><span class="chd-icon">🏢</span>Wohnungsventile</div>
+              <div class="ugrid">
+                <div class="ucard"><div class="uname">EG · Müller</div><div class="utenant">Max Müller</div><div style="margin-top:6px"><span class="vstatus vs-o">✓ Offen</span></div></div>
+                <div class="ucard"><div class="uname">1. OG · Weber</div><div class="utenant">Anna Weber</div><div style="margin-top:6px"><span class="vstatus vs-o">✓ Offen</span></div></div>
+                <div class="ucard"><div class="uname">2. OG · Schmidt</div><div class="utenant">Klaus Schmidt</div><div style="margin-top:6px"><span class="vstatus vs-o">✓ Offen</span></div></div>
+                <div class="ucard"><div class="uname">DG · Leerstand</div><div class="utenant">Leerstand · überwacht</div><div style="margin-top:6px"><span class="vstatus vs-c">✗ Gesperrt</span></div></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="chd"><span class="chd-icon">⚙️</span>Automatik-Regeln</div>
+              <div class="trow"><div><div class="tlabel">Leckage → sofort schließen</div><div class="tdesc">Bei Rohrbruch automatisch absperren</div></div><label class="tgl"><input type="checkbox" checked><span class="tsl"></span></label></div>
+              <div class="trow"><div><div class="tlabel">Leerstand-Modus</div><div class="tdesc">Ventil dauerhaft geschlossen</div></div><label class="tgl"><input type="checkbox" checked><span class="tsl"></span></label></div>
+              <div class="trow"><div><div class="tlabel">Frostschutz-Alarm</div><div class="tdesc">Push bei &lt;+3 °C</div></div><label class="tgl"><input type="checkbox" checked><span class="tsl"></span></label></div>
+            </div>
+          </div>
+
+          <!-- SETTINGS -->
+          <div class="panel" id="p-settings">
+            <div class="card">
+              <div class="chd"><span class="chd-icon">🔌</span>Integrationen</div>
+              <div class="int-grid">
+                <div class="int-card"><span>🏠</span><div><div class="int-name">Home Assistant</div><div class="int-status int-ok">● Verbunden</div></div></div>
+                <div class="int-card"><span>⚙️</span><div><div class="int-name">ioBroker</div><div class="int-status int-ok">● Verbunden</div></div></div>
+                <div class="int-card"><span>🔔</span><div><div class="int-name">Push-Alarm</div><div class="int-status int-soon">iOS · Android</div></div></div>
+                <div class="int-card"><span>🛡️</span><div><div class="int-name">Versicherungs-API</div><div class="int-status int-soon">Bald verfügbar</div></div></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="chd"><span class="chd-icon">💻</span>Geräteinformationen</div>
+              <div class="devrow"><span class="dk">Hardware</span><span class="dv">Edge-Prozessor & Mesh</span></div>
+              <div class="devrow"><span class="dk">Firmware</span><span class="dv">v2.4.1</span></div>
+              <div class="devrow"><span class="dk">Zählertyp</span><span class="dv">Zenner MO-R (IR)</span></div>
+              <div class="devrow"><span class="dk">Uptime</span><span class="dv">47 Tage</span></div>
+              <div class="devrow"><span class="dk">Mesh-Knoten</span><span class="dv">5 aktiv</span></div>
+            </div>
+            <div class="card">
+              <div class="chd"><span class="chd-icon">🔒</span>Datenschutz</div>
+              <div class="trow"><div><div class="tlabel">Lokale Datenhaltung</div><div class="tdesc">Alle Daten auf dem Edge-Prozessor</div></div><label class="tgl"><input type="checkbox" checked><span class="tsl"></span></label></div>
+              <div class="trow"><div><div class="tlabel">Cloud-Backup (optional)</div><div class="tdesc">Verschlüsselte Kopie</div></div><label class="tgl"><input type="checkbox"><span class="tsl"></span></label></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="usp-panel" id="uspPanel"></div>
+</div>
+
+<div class="controls">
+  <button class="ctrl-btn ctrl-prev" id="btnPrev" onclick="navigate(-1)">← Zurück</button>
+  <div class="ctrl-dots" id="ctrlDots"></div>
+  <button class="ctrl-btn ctrl-next" id="btnNext" onclick="navigate(1)">Weiter →</button>
+</div>
+
+<script>
+var steps = [
+  {
+    label: 'Übersicht',
+    desc: 'Echtzeit-Dashboard mit Live-Verbrauch, Druckstatus und Alarm-Feed auf einen Blick.',
+    tag: 'Dashboard',
+    panel: 'overview',
+    navIndex: 0,
+    usps: [
+      {icon:'📊', navy:false, title:'Echtzeit-Verbrauch', body:'Liter-genaue Übersicht aller Einheiten, immer aktuell.'},
+      {icon:'🔔', navy:false, title:'Push-Alarm', body:'Sofortige Benachrichtigung bei ungewöhnlichem Verbrauch.'},
+      {icon:'🏢', navy:true, title:'Multi-Zonen', body:'Alle Wohneinheiten auf einen Blick – inkl. Leerstand.'}
+    ]
+  },
+  {
+    label: 'Leckage & Alarm',
+    desc: 'Sekunden-genaue Leckage-Erkennung per Mesh-Netzwerk mit automatischer Handwerker-Meldung.',
+    tag: 'Leckage-Erkennung',
+    panel: 'leaks',
+    navIndex: 1,
+    usps: [
+      {icon:'🔗', navy:false, title:'Mesh-Netzwerk', body:'Eingrenzung auf Wohnungsebene durch verteilte Sensoren.'},
+      {icon:'🔧', navy:true, title:'Handwerker-Meldung', body:'Automatische Benachrichtigung im Schadensfall.'},
+      {icon:'📋', navy:false, title:'Ereignis-Log', body:'Vollständige Protokollierung aller Anomalien.'}
+    ]
+  },
+  {
+    label: 'Verbrauch',
+    desc: 'Historische Verbrauchsdaten pro Einheit mit automatischer Kostenschätzung.',
+    tag: 'Kostentransparenz',
+    panel: 'consumption',
+    navIndex: 2,
+    usps: [
+      {icon:'💰', navy:false, title:'Kostenprognose', body:'Automatische Hochrechnung der Wasserkosten pro WE.'},
+      {icon:'📄', navy:true, title:'PDF-Export', body:'Nebenkostenabrechnung direkt aus der App generieren.'},
+      {icon:'📈', navy:false, title:'Statistiken', body:'Tages-, Wochen- und Monatsverlauf je Einheit.'}
+    ]
+  },
+  {
+    label: 'Ventile',
+    desc: 'Fernsteuerung aller Ventile – einzeln oder global. Automatik-Regeln für Leerstand und Frostschutz.',
+    tag: 'Fernsteuerung',
+    panel: 'valve',
+    navIndex: 3,
+    usps: [
+      {icon:'🔧', navy:false, title:'Ventil-Notabschaltung', body:'Einzelne Einheiten oder gesamtes Gebäude per Klick sperren.'},
+      {icon:'🛡️', navy:true, title:'Fail-Safe', body:'Lokale Abschaltung ohne Cloud – auch bei Stromausfall.'},
+      {icon:'🤖', navy:false, title:'Automatik-Regeln', body:'Leerstand, Frostschutz und Leckage automatisch gesteuert.'}
+    ]
+  },
+  {
+    label: 'Einstellungen',
+    desc: 'Lokale Datenhaltung auf dem Edge-Prozessor. Integrationen für Smart-Home und Versicherungs-API.',
+    tag: 'Datenschutz & Integration',
+    panel: 'settings',
+    navIndex: 4,
+    usps: [
+      {icon:'🏠', navy:false, title:'Smart-Home', body:'Home Assistant & ioBroker direkt integriert.'},
+      {icon:'💻', navy:true, title:'Lokale Daten', body:'Kein Cloud-Zwang – alle Daten auf dem eigenen Gerät.'},
+      {icon:'🛡️', navy:false, title:'Versicherungs-API', body:'Direktschnittstelle für Versicherungspartner geplant.'}
+    ]
+  }
+];
+
+var current = 0;
+
+// Build tour steps
+var tourPanel = document.getElementById('tourPanel');
+var mobileSteps = document.getElementById('mobileSteps');
+steps.forEach(function(s, i) {
+  var div = document.createElement('div');
+  div.className = 'step' + (i === 0 ? ' active' : '');
+  div.innerHTML = '<div class="step-num">' + (i+1) + '</div><div><div class="step-label">' + s.label + '</div><div class="step-desc">' + s.desc + '</div><div class="step-tag">' + s.tag + '</div></div>';
+  div.onclick = function() { goTo(i); };
+  tourPanel.appendChild(div);
+
+  var btn = document.createElement('button');
+  btn.className = 'mob-btn' + (i === 0 ? ' active' : '');
+  btn.textContent = (i+1) + '. ' + s.label;
+  btn.id = 'mob-' + i;
+  btn.onclick = function() { goTo(i); };
+  mobileSteps.appendChild(btn);
+});
+
+// Build USP panel
+var uspPanel = document.getElementById('uspPanel');
+function buildUsps(usps) {
+  uspPanel.innerHTML = '';
+  usps.forEach(function(u, i) {
+    var div = document.createElement('div');
+    div.className = 'usp-card';
+    div.innerHTML = '<div class="usp-icon' + (u.navy ? ' navy' : '') + '">' + u.icon + '</div><div><div class="usp-title">' + u.title + '</div><div class="usp-body">' + u.body + '</div></div>';
+    uspPanel.appendChild(div);
+    setTimeout(function() { div.classList.add('active'); }, i * 80);
+  });
+}
+buildUsps(steps[0].usps);
+
+// Build dots
+var dotsEl = document.getElementById('ctrlDots');
+steps.forEach(function(_, i) {
+  var d = document.createElement('div');
+  d.className = 'ctrl-dot' + (i === 0 ? ' active' : '');
+  d.onclick = function() { goTo(i); };
+  dotsEl.appendChild(d);
+});
+
+// Charts
+function lineChart(svgId, datasets, H, yMax) {
+  var svg = document.getElementById(svgId);
+  if (!svg) return;
+  var W = 400, pad = {t:8, r:8, b:4, l:28};
+  var w = W - pad.l - pad.r, h = H - pad.t - pad.b, n = 24;
+  var max = yMax || Math.ceil(Math.max.apply(null, datasets.reduce(function(a,d){return a.concat(d.data);},[]))*1.2) || 10;
+  var NS = 'http://www.w3.org/2000/svg';
+  function mk(tag, a) {
+    var el = document.createElementNS(NS, tag);
+    Object.keys(a || {}).forEach(function(k){ el.setAttribute(k, a[k]); });
+    return el;
+  }
+  for (var i = 0; i <= 3; i++) {
+    var y = pad.t + h - (i/3)*h;
+    svg.appendChild(mk('line', {x1:pad.l, x2:pad.l+w, y1:y, y2:y, stroke:'#c8dde9', 'stroke-width':'1'}));
+  }
+  datasets.forEach(function(ds) {
+    function pt(i) { return {x: pad.l+(i/(n-1))*w, y: pad.t+h-(ds.data[i]/max)*h}; }
+    if (ds.fill) {
+      var p = pad.l + ',' + (pad.t+h);
+      for (var i = 0; i < n; i++) { var q = pt(i); p += ' ' + q.x + ',' + q.y; }
+      p += ' ' + (pad.l+w) + ',' + (pad.t+h);
+      svg.appendChild(mk('polygon', {points:p, fill:ds.color, opacity:'0.15'}));
+    }
+    var d = '';
+    for (var i = 0; i < n; i++) { var q = pt(i); d += (i===0?'M':'L') + q.x + ',' + q.y + ' '; }
+    svg.appendChild(mk('path', {d:d, fill:'none', stroke:ds.color, 'stroke-width':ds.w||1.5, 'stroke-linejoin':'round', 'stroke-linecap':'round'}));
+    (ds.anomaly || []).forEach(function(idx) {
+      var q = pt(idx);
+      svg.appendChild(mk('circle', {cx:q.x, cy:q.y, r:'4', fill:'#EF9F27', stroke:'#fff', 'stroke-width':'1.5'}));
+    });
+  });
+}
+
+function rnd(base, noise, spike, anom) {
+  var arr = [];
+  for (var i = 0; i < 24; i++) {
+    var v = base + (Math.random()-0.5)*noise;
+    if (i >= 7 && i <= 9) v += spike;
+    if (anom && (i === 2 || i === 3)) v += spike*0.3;
+    arr.push(Math.max(0, Math.round(v)));
+  }
+  return arr;
+}
+var totD = rnd(12,4,18,true), egD = rnd(4,2,6,true), ogD = rnd(4,2,7), og2D = rnd(3,2,5);
+lineChart('ov-svg', [{data:totD, color:'#26e1c8', w:2, fill:'#26e1c8', anomaly:[2,3]}], 80);
+lineChart('cons-svg', [
+  {data:totD, color:'#26e1c8', w:2, fill:'#26e1c8'},
+  {data:egD, color:'#2B8FBF', w:1.5},
+  {data:ogD, color:'#EF9F27', w:1.5},
+  {data:og2D, color:'#9B59B6', w:1.5}
+], 90);
+
+// Mesh diagram
+(function() {
+  var svg = document.getElementById('mesh-mini');
+  if (!svg) return;
+  var NS = 'http://www.w3.org/2000/svg';
+  function mk(tag, a) {
+    var el = document.createElementNS(NS, tag);
+    Object.keys(a || {}).forEach(function(k){ el.setAttribute(k, a[k]); });
+    return el;
+  }
+  function txt(x, y, t, sz, fill, anchor, w) {
+    var el = mk('text', {x:x, y:y, 'font-size':sz||9, fill:fill||'#3a5568', 'text-anchor':anchor||'middle', 'font-family':'sans-serif'});
+    if (w) el.setAttribute('font-weight', w);
+    el.textContent = t;
+    return el;
+  }
+  var nodes = [
+    {label:'EG · Müller', col:'#faeeda', border:'#EF9F27', flow:'78 L', tx:'#854F0B'},
+    {label:'1. OG · Weber', col:'#e8fdfb', border:'#26e1c8', flow:'91 L', tx:'#12b09c'},
+    {label:'2. OG · Schmidt', col:'#e8fdfb', border:'#26e1c8', flow:'68 L', tx:'#12b09c'},
+    {label:'DG · Leerstand', col:'#eef4f9', border:'#9bb3c5', flow:'0 L', tx:'#6b8fa8'}
+  ];
+  svg.appendChild(mk('rect', {x:120, y:6, width:100, height:38, rx:8, fill:'#e8fdfb', stroke:'#26e1c8', 'stroke-width':'1.5'}));
+  svg.appendChild(txt(170, 22, 'Hauptzähler', 9, '#12b09c', 'middle', '700'));
+  svg.appendChild(txt(170, 36, '3.4 bar · Keller', 8, '#6b8fa8', 'middle'));
+  svg.appendChild(mk('line', {x1:170, y1:44, x2:170, y2:62, stroke:'#a0ede5', 'stroke-width':'1.5', 'stroke-dasharray':'3,2'}));
+  svg.appendChild(mk('line', {x1:30, y1:62, x2:310, y2:62, stroke:'#a0ede5', 'stroke-width':'1.5', 'stroke-dasharray':'3,2'}));
+  var cxs = [30, 110, 210, 310];
+  nodes.forEach(function(n, i) {
+    var cx = cxs[i];
+    svg.appendChild(mk('line', {x1:cx, y1:62, x2:cx, y2:78, stroke:'#a0ede5', 'stroke-width':'1.5', 'stroke-dasharray':'3,2'}));
+    svg.appendChild(mk('rect', {x:cx-34, y:78, width:68, height:52, rx:7, fill:n.col, stroke:n.border, 'stroke-width':'1.5'}));
+    var parts = n.label.split(' · ');
+    svg.appendChild(txt(cx, 92, parts[0], 7.5, n.tx, 'middle', '700'));
+    svg.appendChild(txt(cx, 103, parts[1], 7, '#6b8fa8', 'middle'));
+    svg.appendChild(mk('rect', {x:cx-18, y:108, width:36, height:14, rx:7, fill:n.col}));
+    svg.appendChild(txt(cx, 119, n.flow, 7.5, n.tx, 'middle', '700'));
+  });
+  svg.appendChild(mk('circle', {cx:30, cy:62, r:'4', fill:'#EF9F27'}));
+  [110,210,310].forEach(function(x){ svg.appendChild(mk('circle', {cx:x, cy:62, r:'4', fill:'#26e1c8'})); });
+})();
+
+// Navigation
+function goTo(idx) {
+  var s = steps[idx];
+  document.querySelectorAll('.step').forEach(function(el, i){ el.classList.toggle('active', i===idx); });
+  document.querySelectorAll('.ctrl-dot').forEach(function(el, i){ el.classList.toggle('active', i===idx); });
+  document.querySelectorAll('.mob-btn').forEach(function(el, i){ el.classList.toggle('active', i===idx); });
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('active'); });
+  document.getElementById('p-' + s.panel).classList.add('active');
+  document.querySelectorAll('.anb').forEach(function(b, i){ b.classList.toggle('active', i===s.navIndex); });
+  document.getElementById('phoneInner').scrollTop = 0;
+  buildUsps(s.usps);
+  var mob = document.getElementById('mob-' + idx);
+  if (mob) mob.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'});
+  document.getElementById('btnPrev').style.opacity = idx === 0 ? '0.35' : '1';
+  document.getElementById('btnPrev').disabled = idx === 0;
+  document.getElementById('btnNext').textContent = idx === steps.length-1 ? 'Fertig ✓' : 'Weiter →';
+  current = idx;
+}
+
+function navigate(dir) {
+  goTo((current + dir + steps.length) % steps.length);
+}
+
+goTo(0);
+</script>
+</body>
+</html>
